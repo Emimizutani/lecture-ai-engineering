@@ -26,28 +26,35 @@ data.ensure_initial_data()
 # LLMモデルのロード（キャッシュを利用）
 # モデルをキャッシュして再利用
 @st.cache_resource
-def load_model():
+def load_model(model_name):
     """LLMモデルをロードする"""
     try:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         st.info(f"Using device: {device}") # 使用デバイスを表示
         pipe = pipeline(
             "text-generation",
-            model=MODEL_NAME,
+            model=model_name,
             model_kwargs={"torch_dtype": torch.bfloat16},
             device=device
         )
-        st.success(f"モデル '{MODEL_NAME}' の読み込みに成功しました。")
+        st.success(f"モデル '{model_name}' の読み込みに成功しました。")
         return pipe
     except Exception as e:
-        st.error(f"モデル '{MODEL_NAME}' の読み込みに失敗しました: {e}")
+        st.error(f"モデル '{model_name}' の読み込みに失敗しました: {e}")
         st.error("GPUメモリ不足の可能性があります。不要なプロセスを終了するか、より小さいモデルの使用を検討してください。")
         return None
-pipe = llm.load_model()
+    
+option = st.selectbox(
+    "モデルを選択してください",
+    ["google/gemma-2-2b-jpn-it", "meta-llama/Llama-3.2-1B"]
+)
+st.write(f"あなたは {option} を選びました")
+
+pipe = llm.load_model(option)
 
 # --- Streamlit アプリケーション ---
-st.title("🤖 Gemma 2 Chatbot with Feedback")
-st.write("Gemmaモデルを使用したチャットボットです。回答に対してフィードバックを行えます。")
+st.title(f"🤖 {option} Chatbot with Feedback")
+st.write(f"{option}モデルを使用したチャットボットです。回答に対してフィードバックを行えます。")
 st.markdown("---")
 
 # --- サイドバー ---
